@@ -3,19 +3,28 @@ package online.bradleydavis.trackandtrace;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -35,9 +44,71 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
-        } else {
-            refreshSmsInbox();
         }
+        else {
+            refreshSmsInbox();
+
+            //restart the activity after 10 minutes
+            final Handler handler = new Handler();
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    recreate();
+                }
+            }, 600000);
+        }
+    }
+
+    public void refreshSmsInbox() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -22);
+        Date twentyTwoDaysAgo = calendar.getTime();
+
+        SimpleDateFormat timeConverter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
+        SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+
+        ContentResolver contentResolver = getContentResolver();
+        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
+        int indexID = smsInboxCursor.getColumnIndex("_id");
+        int indexBody = smsInboxCursor.getColumnIndex("body");
+        int indexAddress = smsInboxCursor.getColumnIndex("address");
+        int indexTimeStamp = smsInboxCursor.getColumnIndex("date");
+
+        if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
+
+        arrayAdapter.clear();
+        do {
+            //get message details
+            long id = smsInboxCursor.getLong(indexID);
+            String phoneNumber = smsInboxCursor.getString(indexAddress);
+            String timeStamp = smsInboxCursor.getString(indexTimeStamp);
+            Date dateStamp = new Date(Long.parseLong(timeStamp));
+            String time = timeConverter.format(dateStamp);
+            String date = dateConverter.format(dateStamp);
+            String messageBody = smsInboxCursor.getString(indexBody);
+
+            //if the message is over 22 days old, attempt to delete it
+            if (dateStamp.before(twentyTwoDaysAgo)) {
+                try {
+                    getContentResolver().delete(Uri.parse("content://sms/" + id), null, null);
+                }
+                catch (Exception e) {
+                    Log.d("TrackAndTrace", e.getMessage());
+                }
+            }
+            else {
+                arrayAdapter.add(new SingleMessage(phoneNumber, date, time, messageBody));
+            }
+        } while (smsInboxCursor.moveToNext());
+    }
+
+    private BroadcastReceiver createReceiver() {
+        return new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                refreshSmsInbox();
+            }
+        };
     }
 
     public void getPermissionToReadSMS() {
@@ -71,28 +142,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void refreshSmsInbox() {
-        SimpleDateFormat timeConverter = new SimpleDateFormat("hh:mm", Locale.ENGLISH);
-        SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
-
-        ContentResolver contentResolver = getContentResolver();
-        Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
-        int indexBody = smsInboxCursor.getColumnIndex("body");
-        int indexAddress = smsInboxCursor.getColumnIndex("address");
-        int indexTimeStamp = smsInboxCursor.getColumnIndex("date");
-
-        if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
-
-        arrayAdapter.clear();
-        do {
-            String phoneNumber = smsInboxCursor.getString(indexAddress);
-            String timeStamp = smsInboxCursor.getString(indexTimeStamp);
-            Date dateStamp = new Date(Long.parseLong(timeStamp));
-            String time = timeConverter.format(dateStamp);
-            String date = dateConverter.format(dateStamp);
-            String messageBody = smsInboxCursor.getString(indexBody);
-
-            arrayAdapter.add(new SingleMessage(phoneNumber, date, time, messageBody));
-        } while (smsInboxCursor.moveToNext());
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 }

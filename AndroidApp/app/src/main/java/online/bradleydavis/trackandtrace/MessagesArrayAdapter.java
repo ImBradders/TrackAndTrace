@@ -21,10 +21,7 @@ class MessagesArrayAdapter extends ArrayAdapter {
     @NonNull
     @Override
     public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-        View formattedMessage = convertView;
-        if (formattedMessage != null) {
-            formattedMessage = LayoutInflater.from(super.getContext()).inflate(R.layout.single_message, parent, false);
-        }
+        View formattedMessage = LayoutInflater.from(super.getContext()).inflate(R.layout.single_message, parent, false);
 
         SingleMessage currentMessage = (SingleMessage)super.getItem(position);
 
