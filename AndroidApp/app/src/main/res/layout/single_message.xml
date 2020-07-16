@@ -45,6 +45,7 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/MessageBody"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="message content\nwill go here"

@@ -1,10 +1,10 @@
 package online.bradleydavis.trackandtrace;
 
 public class SingleMessage {
-    String phoneNumber;
-    String date;
-    String time;
-    String messageContent;
+    private String phoneNumber;
+    private String date;
+    private String time;
+    private String messageContent;
 
     public SingleMessage() {
         phoneNumber = "00000000000";

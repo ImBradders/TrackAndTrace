@@ -11,15 +11,16 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
-    ArrayList<String> smsMessagesList = new ArrayList<>();
     ListView messages;
     ArrayAdapter arrayAdapter;
     private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         messages = (ListView) findViewById(R.id.messages);
-        arrayAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, smsMessagesList);
+        arrayAdapter = new MessagesArrayAdapter(this, new ArrayList<SingleMessage>());
         messages.setAdapter(arrayAdapter);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -71,16 +72,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void refreshSmsInbox() {
+        SimpleDateFormat timeConverter = new SimpleDateFormat("hh:mm", Locale.ENGLISH);
+        SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
+
         ContentResolver contentResolver = getContentResolver();
         Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
         int indexBody = smsInboxCursor.getColumnIndex("body");
         int indexAddress = smsInboxCursor.getColumnIndex("address");
+        int indexTimeStamp = smsInboxCursor.getColumnIndex("date");
+
         if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
+
         arrayAdapter.clear();
         do {
-            String str = "SMS From: " + smsInboxCursor.getString(indexAddress) +
-                    "\n" + smsInboxCursor.getString(indexBody) + "\n";
-            arrayAdapter.add(str);
+            String phoneNumber = smsInboxCursor.getString(indexAddress);
+            String timeStamp = smsInboxCursor.getString(indexTimeStamp);
+            Date dateStamp = new Date(Long.parseLong(timeStamp));
+            String time = timeConverter.format(dateStamp);
+            String date = dateConverter.format(dateStamp);
+            String messageBody = smsInboxCursor.getString(indexBody);
+
+            arrayAdapter.add(new SingleMessage(phoneNumber, date, time, messageBody));
         } while (smsInboxCursor.moveToNext());
     }
 }
