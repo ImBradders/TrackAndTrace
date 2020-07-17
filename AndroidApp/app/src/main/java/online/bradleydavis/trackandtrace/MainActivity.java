@@ -6,7 +6,6 @@ import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -33,10 +32,14 @@ public class MainActivity extends AppCompatActivity {
     ListView messages;
     ArrayAdapter arrayAdapter;
     BroadcastReceiver localBroadcastReceiver;
+    StorageManager storageManager;
     private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
+    private static final int ACCESS_EXTERNAL_STORAGE_REQUEST = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        storageManager = new StorageManager(this);
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -48,7 +51,16 @@ public class MainActivity extends AppCompatActivity {
                 != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
         }
-        else {
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            getPermissionToAccessStorage();
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
+                == PackageManager.PERMISSION_GRANTED &&
+                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                        == PackageManager.PERMISSION_GRANTED) {
             refreshSmsInbox();
 
             //register for updates when messages arrive
@@ -68,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void refreshSmsInbox() {
+        storageManager.WriteToFile();
+
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -22);
         Date twentyTwoDaysAgo = calendar.getTime();
@@ -98,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
             //if the message is over 22 days old, attempt to delete it
             if (dateStamp.before(twentyTwoDaysAgo)) {
                 try {
-                    getContentResolver().delete(Uri.parse("content://sms/" + id), null, null);
+                    contentResolver.delete(Uri.parse("content://sms/" + id), null, null);
                 }
                 catch (Exception e) {
                     Log.d("TrackAndTrace", e.getMessage());
@@ -122,12 +136,23 @@ public class MainActivity extends AppCompatActivity {
     public void getPermissionToReadSMS() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
-            if (shouldShowRequestPermissionRationale(
-                    Manifest.permission.READ_SMS)) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_SMS)) {
                 Toast.makeText(this, "Please allow permission!", Toast.LENGTH_SHORT).show();
             }
             requestPermissions(new String[]{Manifest.permission.READ_SMS},
                     READ_SMS_PERMISSIONS_REQUEST);
+        }
+    }
+
+    public void getPermissionToAccessStorage() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                Toast.makeText(this, "Please allow permission!", Toast.LENGTH_SHORT).show();
+            }
+            requestPermissions(new String[] {Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    ACCESS_EXTERNAL_STORAGE_REQUEST);
         }
     }
 
@@ -146,6 +171,15 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Read SMS permission denied", Toast.LENGTH_SHORT).show();
             }
 
+        }
+        else if (requestCode == ACCESS_EXTERNAL_STORAGE_REQUEST) {
+            if (grantResults.length == 1 &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Access external storage granted", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                Toast.makeText(this, "Access external storage denied", Toast.LENGTH_SHORT).show();
+            }
         }
         else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
