@@ -32,21 +32,29 @@ public class MainActivity extends AppCompatActivity {
 
     ListView messages;
     ArrayAdapter arrayAdapter;
+    BroadcastReceiver localBroadcastReceiver;
     private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         messages = (ListView) findViewById(R.id.messages);
         arrayAdapter = new MessagesArrayAdapter(this, new ArrayList<SingleMessage>());
         messages.setAdapter(arrayAdapter);
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
         }
         else {
             refreshSmsInbox();
+
+            //register for updates when messages arrive
+            localBroadcastReceiver = createReceiver();
+            LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+            localBroadcastManager.registerReceiver(localBroadcastReceiver, new IntentFilter("online.bradleydavis.TrackAndTrace"));
 
             //restart the activity after 10 minutes
             final Handler handler = new Handler();
@@ -133,11 +141,13 @@ public class MainActivity extends AppCompatActivity {
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Read SMS permission granted", Toast.LENGTH_SHORT).show();
                 refreshSmsInbox();
-            } else {
+            }
+            else {
                 Toast.makeText(this, "Read SMS permission denied", Toast.LENGTH_SHORT).show();
             }
 
-        } else {
+        }
+        else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
@@ -145,5 +155,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
+        localBroadcastManager.unregisterReceiver(localBroadcastReceiver);
     }
 }
