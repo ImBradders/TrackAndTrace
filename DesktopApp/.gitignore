@@ -1,0 +1,21 @@
+# Java class files
+*.class
+
+# Generated files
+bin/
+
+# IntelliJ
+*.iml
+.idea/workspace.xml
+.idea/dictionaries
+.idea/libraries
+
+# Version control
+vcs.xml
+
+# lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+# lint/reports/
