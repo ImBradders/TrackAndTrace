@@ -173,9 +173,9 @@ namespace TrackAndTrace
                     do
                     {
                         sourceStream.Read(buffer, 1024, new IntPtr(&bytesRead));
-                        targetStream.Write(buffer, 0, 1024);
+                        targetStream.Write(buffer, 0, bytesRead);
                     } while (bytesRead > 0);
-                    //for future Brad - wpdSteam may also need to be realsed
+                    //for future Brad - wpdSteam may also need to be released
                     Marshal.ReleaseComObject(sourceStream);
                     targetStream.Close();
                 }
