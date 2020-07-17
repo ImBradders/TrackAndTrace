@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Environment;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.widget.Toast;
 
