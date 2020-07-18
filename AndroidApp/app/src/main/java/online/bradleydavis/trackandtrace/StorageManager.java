@@ -57,6 +57,8 @@ public class StorageManager {
                     String time = timeConverter.format(dateStamp);
                     String date = dateConverter.format(dateStamp);
                     String messageBody = smsInboxCursor.getString(indexBody);
+                    messageBody = messageBody.replaceAll(",", "");
+                    messageBody = messageBody.replaceAll("\n", " ");
 
                     File newFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS) + filePathExt +
                             File.separator + id + ".txt");
