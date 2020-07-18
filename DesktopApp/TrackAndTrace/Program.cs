@@ -14,6 +14,9 @@ namespace TrackAndTrace
 
             FileRetriever fileRetriever = new FileRetriever(false, textMessagesLocalStorage);
             fileRetriever.Run();
+            
+            FileModifier fileModifier = new FileModifier(false, textMessagesLocalStorage, outputFiles);
+            fileModifier.Run();
         }
     }
 }

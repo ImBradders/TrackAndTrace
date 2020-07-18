@@ -16,5 +16,10 @@ namespace TrackAndTrace
             From = from;
             Time = time;
         }
+
+        public string GetOutputFileLine()
+        { 
+            return Body + "," + From + "," + Time.ToString("HH") + "," +Time.ToString("mm");
+        }
     }
 }
