@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.IO;
 
 namespace TrackAndTrace
@@ -87,7 +88,8 @@ namespace TrackAndTrace
             string[] filePathSplit = filePath.Split('\\');
             string fileName = filePathSplit[filePathSplit.Length - 1];
             string messageId = fileName.Substring(0, fileName.Length - 4);
-            DateTime messageTime = DateTime.Parse(textMessageDetails[3] + " " + textMessageDetails[2]);
+            DateTime messageTime = DateTime.ParseExact(textMessageDetails[3] + " " + textMessageDetails[2],
+                "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
             
             //file should be body,number,time,date
             return new TextMessage(messageId, textMessageDetails[0], textMessageDetails[1], messageTime);
