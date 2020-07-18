@@ -7,9 +7,12 @@ namespace TrackAndTrace
         private readonly bool _silent;
         private int _depth;
         private PortableDevice _currentDevice;
-        public FileRetriever(bool silent)
+        private readonly string _destinationPath;
+        
+        public FileRetriever(bool silent, string destinationPath)
         {
             _silent = silent;
+            _destinationPath = destinationPath;
         }
         public void Run()
         {
@@ -58,7 +61,7 @@ namespace TrackAndTrace
                 }
                 else if (folder.Name.Equals(folderName))
                 {
-                    bool saved = _currentDevice.DownloadFile((PortableDeviceFile) item, "C:\\Users\\bradd\\Desktop\\TestData");
+                    bool saved = _currentDevice.DownloadFile((PortableDeviceFile) item, _destinationPath);
                     if (!_silent && saved)
                         Console.WriteLine(IndentString() + item.Name + " - Saved to Computer");
                     else if (!_silent && !saved)

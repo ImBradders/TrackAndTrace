@@ -6,7 +6,13 @@ namespace TrackAndTrace
     {
         public static void Main(string[] args)
         {
-            FileRetriever fileRetriever = new FileRetriever(false);
+            string textMessagesLocalStorage = @"C:\TrackAndTrace\TextMessages";
+            string outputFiles = @"C:\TrackAndTrace\OutputFiles";
+            string viewingFiles = @"C:\TrackAndTrace\ViewingFiles";
+
+            Startup.PerformStartup(textMessagesLocalStorage, outputFiles, viewingFiles);
+
+            FileRetriever fileRetriever = new FileRetriever(false, textMessagesLocalStorage);
             fileRetriever.Run();
         }
     }
