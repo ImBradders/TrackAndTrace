@@ -31,7 +31,9 @@ namespace TrackAndTrace
             
             while (programmingRunning)
             {
-                fileRetriever.Run();    
+                //kill the program if we cannot retrieve the files.
+                if (fileRetriever.Run())
+                    break;
                 fileModifier.Run();
                 fileComparer.Run();
 

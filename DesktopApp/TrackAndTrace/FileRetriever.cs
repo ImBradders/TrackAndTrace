@@ -14,10 +14,12 @@ namespace TrackAndTrace
             _silent = silent;
             _destinationPath = destinationPath;
         }
-        public void Run()
+        public bool Run()
         {
             PortableDeviceList deviceList = new PortableDeviceList();
-            deviceList.Refresh();
+            if (!deviceList.Refresh())
+                return false;
+            
             foreach(PortableDevice device in deviceList)
             {
                 _currentDevice = device;
@@ -28,6 +30,8 @@ namespace TrackAndTrace
                 _currentDevice.Disconnect();
                 Console.WriteLine();
             }
+
+            return true;
         }
 
         private void RetrieveFromDevice(PortableDeviceFolder rootDirectory, string folderName)

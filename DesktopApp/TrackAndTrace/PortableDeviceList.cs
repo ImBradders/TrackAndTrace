@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using PortableDeviceApiLib;
 
 namespace TrackAndTrace
@@ -12,7 +13,7 @@ namespace TrackAndTrace
             _deviceManager = new PortableDeviceManager();
         }
 
-        public void Refresh()
+        public bool Refresh()
         {
             _deviceManager.RefreshDeviceList();
             // Determine how many WPDs are connected
@@ -22,12 +23,24 @@ namespace TrackAndTrace
             
             // Retrieve the device id for each connected device
             deviceIds = new string[count];
-            _deviceManager.GetDevices(ref deviceIds[0], ref count);
-            
+            try
+            {
+                _deviceManager.GetDevices(ref deviceIds[0], ref count);
+            }
+            catch (IndexOutOfRangeException indexOutOfRangeException)
+            {
+                Console.WriteLine("Error: Unable to access mobile device.");
+                Console.WriteLine("Please unplug and replug the device and ensure that the device is set to \"USB for file transfer\".");
+                Console.WriteLine("Once this is done, restart this program.");
+                return false;
+            }
+
             foreach(string deviceId in deviceIds)
             {
                 Add(new PortableDevice(deviceId));
             }
+
+            return true;
         }
     }
 }
