@@ -42,7 +42,7 @@ namespace TrackAndTrace
                     if (!CreateFile(_destinationDirectory + "\\" + sourceFile))
                         continue;
 
-                    messages = ReadFile(_sourceDirectory + "\\" + sourceFile);
+                    messages = ReadCSVFile(_sourceDirectory + "\\" + sourceFile);
                     numMessagesWritten = WriteToFile(_destinationDirectory + "\\" + sourceFile, messages);
                     if (!_silent)
                         PrintDetails(numMessagesWritten, messages.Count, sourceFile);
@@ -55,12 +55,15 @@ namespace TrackAndTrace
                         PrintDetails(numMessagesWritten, messages.Count, sourceFile);
                 }
             }
+            
+            if(!_silent)
+                Console.WriteLine();
         }
 
         private List<TextMessage> CompareFiles(string filePath)
         {
-            List<TextMessage> srcMessages = ReadFile(_sourceDirectory + "\\" + filePath);
-            List<TextMessage> destMessages = ReadFile(_destinationDirectory + "\\" + filePath);
+            List<TextMessage> srcMessages = ReadCSVFile(_sourceDirectory + "\\" + filePath);
+            List<TextMessage> destMessages = ReadCSVFile(_destinationDirectory + "\\" + filePath);
 
             //move all the messages to the destination if they aren't already there
             foreach (TextMessage message in srcMessages)
@@ -111,10 +114,7 @@ namespace TrackAndTrace
                 }
                 else
                 {
-                    Console.WriteLine("Please report the following error to the developer:");
-                    Console.WriteLine("Error writing to file " + filePath);
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Utils.PrintErrorMessage(exception, new string[]{"Error writing to file " + filePath});
                 }
             }
             finally
@@ -125,7 +125,7 @@ namespace TrackAndTrace
             return numMessagesWritten;
         }
         
-        private List<TextMessage> ReadFile(string filePath)
+        private List<TextMessage> ReadCSVFile(string filePath)
         {
             List<TextMessage> messages = new List<TextMessage>();
             StreamReader reader = new StreamReader(filePath);
@@ -149,13 +149,19 @@ namespace TrackAndTrace
                     if (splitLine.Length != 4)
                         continue;
 
-                    body = splitLine[0];
-                    from = splitLine[1];
-                    hour = splitLine[2];
-                    minute = splitLine[3];
+                    body = splitLine[0].Trim();
+                    from = splitLine[1].Trim();
+                    hour = splitLine[2].Trim();
+                    minute = splitLine[3].Trim();
+
+                    //if we are unable to parse the date & time of this message, ignore it
+                    DateTime messageTime;
+                    if (!DateTime.TryParseExact(date + " " + hour + minute, "dd.MM.yyyy HH:mm",
+                        CultureInfo.InvariantCulture, DateTimeStyles.None, out messageTime))
+                        continue;
                     
-                    messages.Add(new TextMessage("none", body, from, 
-                        DateTime.ParseExact(date + " " + hour + minute, "yyyy.MM.dd HHmm", CultureInfo.InvariantCulture)));
+                    
+                    messages.Add(new TextMessage("none", body, from, messageTime));
                 }
             }
             catch (Exception exception)
@@ -168,10 +174,7 @@ namespace TrackAndTrace
                 }
                 else
                 {
-                    Console.WriteLine("Please report the following error to the developer:");
-                    Console.WriteLine("Error reading from file " + filePath);
-                    Console.WriteLine(exception.Message);
-                    Console.WriteLine(exception.StackTrace);
+                    Utils.PrintErrorMessage(exception, new string[] {"Error reading from file " + filePath});
                 }
             }
             finally

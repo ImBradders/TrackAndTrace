@@ -29,9 +29,12 @@ namespace TrackAndTrace
             }
             catch (IndexOutOfRangeException indexOutOfRangeException)
             {
-                Console.WriteLine("Error: Unable to access mobile device.");
-                Console.WriteLine("Please unplug and replug the device and ensure that the device is set to \"USB for file transfer\".");
-                Console.WriteLine("Once this is done, restart this program.");
+                Utils.PrintErrorMessage(indexOutOfRangeException, new string[]
+                {
+                    "Unable to access mobile device.",
+                    "Please unplug and replug the device and ensure that the device is set to \"USB for file transfer\".",
+                    "Once this is done, restart this program."
+                });
                 return false;
             }
 

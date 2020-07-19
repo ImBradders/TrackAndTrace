@@ -184,12 +184,8 @@ namespace TrackAndTrace
             }
             catch (Exception error)
             {
-                Console.WriteLine("Please inform the dev that this scary looking error occured:");
-                Console.WriteLine(error.Message);
-                Console.WriteLine("at:");
-                Console.WriteLine(error.StackTrace);
-                Console.WriteLine("While trying to access: " + file.Name);
-                Console.WriteLine();
+                Utils.PrintErrorMessage(error, new string[] 
+                    {"Unable to access " + file.Name + " from remote device."});
                 return false;
             }
         }

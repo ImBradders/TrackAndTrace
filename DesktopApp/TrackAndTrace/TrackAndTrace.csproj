@@ -40,6 +40,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="FileComparer.cs" />
+        <Compile Include="FileDeleter.cs" />
         <Compile Include="FileModifier.cs" />
         <Compile Include="FileRetriever.cs" />
         <Compile Include="PortableDevice.cs" />
@@ -51,6 +52,7 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Startup.cs" />
         <Compile Include="TextMessage.cs" />
+        <Compile Include="Utils.cs" />
     </ItemGroup>
     <ItemGroup>
       <COMReference Include="PortableDeviceApiLib">

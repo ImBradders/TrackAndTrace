@@ -19,23 +19,47 @@ namespace TrackAndTrace
                 return;
             }
 
+            bool silent = false;
+            bool gotSilent = false;
+            while (!gotSilent)
+            {
+                Console.WriteLine("Would you like the application to run in silent mode? y/n");
+                ConsoleKey key = Console.ReadKey().Key;
+                switch (key)
+                {
+                    case ConsoleKey.Y:
+                        silent = true;
+                        gotSilent = true;
+                        break;
+                    case ConsoleKey.N:
+                        silent = false;
+                        gotSilent = true;
+                        break;
+                    default:
+                        Console.WriteLine("Key entered was invalid. Please use y or n.");
+                        break;
+                }
+            }
+            
             bool programmingRunning = true;
             Console.WriteLine("Please press the escape key if the program needs to be stopped.");
             Console.WriteLine("This ensures that the program is not stopped during file transmission.");
             Console.WriteLine("It could take up to 5 seconds for your key press to be registered, be patient.");
 
-            FileRetriever fileRetriever = new FileRetriever(false, textMessagesLocalStorage);
-            FileModifier fileModifier = new FileModifier(false, textMessagesLocalStorage, outputFiles);
-            FileComparer fileComparer = new FileComparer(false, outputFiles, viewingFiles);
+            FileRetriever fileRetriever = new FileRetriever(silent, textMessagesLocalStorage);
+            FileModifier fileModifier = new FileModifier(silent, textMessagesLocalStorage, outputFiles);
+            FileComparer fileComparer = new FileComparer(silent, outputFiles, viewingFiles);
+            FileDeleter fileDeleter = new FileDeleter(silent, new string[]{textMessagesLocalStorage, outputFiles, viewingFiles});
             Random random = new Random();
             
             while (programmingRunning)
             {
                 //kill the program if we cannot retrieve the files.
-                if (fileRetriever.Run())
+                if (!fileRetriever.Run())
                     break;
                 fileModifier.Run();
                 fileComparer.Run();
+                fileDeleter.Run();
 
                 //see if the user needs to stop the program while
                 //waiting a random time between 4 and 6 minutes to copy the files again.

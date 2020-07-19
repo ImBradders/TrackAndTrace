@@ -6,7 +6,7 @@ namespace TrackAndTrace
     {
         public static bool PerformStartup(string textMessages, string outputFiles, string viewingFiles)
         {
-            return CreateFolder(textMessages) && 
+            return CreateFolder(textMessages, true) && 
                    CreateFolder(viewingFiles) && 
                    CreateFolder(outputFiles, true);
         }

@@ -57,6 +57,8 @@ namespace TrackAndTrace
             
             //ensure that we close the stream writer once we are done with it.
             fileWriter?.Close();
+            if(!_silent)
+                Console.WriteLine();
         }
 
         public bool WriteToFile(ref StreamWriter writer, string line)
@@ -68,10 +70,8 @@ namespace TrackAndTrace
             }
             catch (Exception exception)
             {
-                Console.WriteLine("Please report the following error to the developer:");
-                Console.WriteLine("Error writing to file " + ((FileStream)writer.BaseStream).Name);
-                Console.WriteLine(exception.Message);
-                Console.WriteLine(exception.StackTrace);
+                Utils.PrintErrorMessage(exception, new string[] 
+                    {"Error writing to file " + ((FileStream)writer.BaseStream).Name});
                 written = false;
             }
 
@@ -80,51 +80,30 @@ namespace TrackAndTrace
 
         private TextMessage GetMessageFromFile(string filePath)
         {
-            string fileContents = ReadTextMessageFile(filePath);
+            string fileContents = Utils.ReadTextMessageFile(filePath);
             if (fileContents == null)
                 return null;
-            
+
             string[] textMessageDetails = fileContents.Split(',');
+            if (textMessageDetails.Length != 4)
+                return null;
+            for (int i = 0; i < textMessageDetails.Length; i++)
+            {
+                textMessageDetails[i] = textMessageDetails[i].Trim();
+            }
+            
             string[] filePathSplit = filePath.Split('\\');
             string fileName = filePathSplit[filePathSplit.Length - 1];
             string messageId = fileName.Substring(0, fileName.Length - 4);
-            DateTime messageTime = DateTime.ParseExact(textMessageDetails[3] + " " + textMessageDetails[2],
-                "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
-            
+            DateTime messageTime;
+            if (!DateTime.TryParseExact(textMessageDetails[3] + " " + textMessageDetails[2],
+                "dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out messageTime))
+                return null;
+
             //file should be body,number,time,date
             return new TextMessage(messageId, textMessageDetails[0], textMessageDetails[1], messageTime);
         }
 
-        private string ReadTextMessageFile(string filePath)
-        {
-            StreamReader reader = null;
-            string fileContents = "";
-            try
-            {
-                reader = new StreamReader(filePath);
-                string line = "";
-
-                while ((line = reader.ReadLine()) != null)
-                {
-                    fileContents += line;
-                }
-            }
-            catch (Exception exception)
-            {
-                Console.WriteLine("Please report the following error to the developer:");
-                Console.WriteLine("Error reading from file " + filePath);
-                Console.WriteLine(exception.Message);
-                Console.WriteLine(exception.StackTrace);
-            }
-            finally
-            {
-                //close the reader if it is not null
-                reader?.Close();
-            }
-
-            return fileContents;
-        }
-        
         private void PrintMessageDetails(TextMessage message, bool written)
         {
             if (written) 
@@ -132,7 +111,6 @@ namespace TrackAndTrace
             else
                 Console.Write("NOT SAVED ");
             Console.WriteLine(message.Id + "  " + message.From);
-            Console.WriteLine();
         }
     }
 }

@@ -98,8 +98,8 @@ public class StorageManager {
 
             File newFile = new File(baseFilePath + filePathExt +
                     File.separator + id + ".txt");
-            String formattedEntry = messageBody + ", " + phoneNumber + ", " +
-                    time + ", " + date;
+            String formattedEntry = messageBody + "," + phoneNumber + "," +
+                    time + "," + date;
 
             //if the message is younger than 22 days, save it to the folder.
             if (dateStamp.after(twentyTwoDaysAgo)) {
