@@ -40,11 +40,15 @@ namespace TrackAndTrace
                         break;
                 }
             }
+            Console.WriteLine();
             
             bool programmingRunning = true;
             Console.WriteLine("Please press the escape key if the program needs to be stopped.");
             Console.WriteLine("This ensures that the program is not stopped during file transmission.");
             Console.WriteLine("It could take up to 5 seconds for your key press to be registered, be patient.");
+            Console.WriteLine("Press any key to continue...");
+            Console.ReadKey();
+            Console.WriteLine();
 
             FileRetriever fileRetriever = new FileRetriever(silent, textMessagesLocalStorage);
             FileModifier fileModifier = new FileModifier(silent, textMessagesLocalStorage, outputFiles);
