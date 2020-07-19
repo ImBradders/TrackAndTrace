@@ -24,6 +24,13 @@ namespace TrackAndTrace
         {
             string[] sourceFilePaths = Directory.GetFiles(_sourceDirectory);
             string[] destinationFilePaths = Directory.GetFiles(_destinationDirectory);
+            
+            List<string> destinationFiles = new List<string>();
+            foreach (string destinationFilePath in destinationFilePaths)
+            {
+                string[] destinationFilePathSplit = destinationFilePath.Split('\\');
+                destinationFiles.Add(destinationFilePathSplit[destinationFilePathSplit.Length - 1]);
+            }
 
             List<TextMessage> messages;
             int numMessagesWritten;
@@ -35,7 +42,7 @@ namespace TrackAndTrace
                 splitSourceFilePath = sourceFilePath.Split('\\');
                 sourceFile = splitSourceFilePath[splitSourceFilePath.Length - 1];
                 
-                if (!destinationFilePaths.Contains(sourceFilePath))
+                if (!destinationFiles.Contains(sourceFile))
                 {
                     //file is not yet present in the destination
                     //if we are unable to create the file, skip it. We will attempt again in 5 mins.
@@ -156,7 +163,7 @@ namespace TrackAndTrace
 
                     //if we are unable to parse the date & time of this message, ignore it
                     DateTime messageTime;
-                    if (!DateTime.TryParseExact(date + " " + hour + minute, "dd.MM.yyyy HH:mm",
+                    if (!DateTime.TryParseExact(date + " " + hour + minute, "yyyy.MM.dd HHmm",
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out messageTime))
                         continue;
                     
