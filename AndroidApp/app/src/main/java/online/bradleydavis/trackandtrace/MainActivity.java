@@ -80,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void refreshSmsInbox() {
-        storageManager.WriteToFile();
+        storageManager.UpdateFiles();
 
-        Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance(); 
         calendar.add(Calendar.DATE, -22);
         Date twentyTwoDaysAgo = calendar.getTime();
 
@@ -109,19 +109,24 @@ public class MainActivity extends AppCompatActivity {
             String date = dateConverter.format(dateStamp);
             String messageBody = smsInboxCursor.getString(indexBody);
 
-            //if the message is over 22 days old, attempt to delete it
+            //if the message is over 22 days old, don't show it in the list
             if (dateStamp.before(twentyTwoDaysAgo)) {
+                //TODO find out how to set app as default messaging app to circumvent this.
+                /*Deleting the messages does not work due to Android being wonderfully unique
                 try {
                     contentResolver.delete(Uri.parse("content://sms/" + id), null, null);
                 }
                 catch (Exception e) {
                     Log.d("TrackAndTrace", e.getMessage());
                 }
+                */
             }
             else {
                 arrayAdapter.add(new SingleMessage(phoneNumber, date, time, messageBody));
             }
         } while (smsInboxCursor.moveToNext());
+
+        smsInboxCursor.close();
     }
 
     private BroadcastReceiver createReceiver() {
