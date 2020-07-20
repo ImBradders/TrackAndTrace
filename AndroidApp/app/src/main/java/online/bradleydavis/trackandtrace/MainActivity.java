@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
-        // Make sure it's our original READ_CONTACTS request
+        // Make sure it's our original READ_SMS request
         if (requestCode == READ_SMS_PERMISSIONS_REQUEST) {
             if (grantResults.length == 1 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -181,6 +181,7 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length == 1 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Access external storage granted", Toast.LENGTH_SHORT).show();
+                refreshSmsInbox();
             }
             else {
                 Toast.makeText(this, "Access external storage denied", Toast.LENGTH_SHORT).show();
