@@ -185,7 +185,7 @@ namespace TrackAndTrace
             catch (Exception error)
             {
                 Utils.PrintErrorMessage(error, new string[] 
-                    {"Unable to access " + file.Name + " from remote device."});
+                    {"Unable to access " + file.Name + " from remote device."}, true);
                 return false;
             }
         }

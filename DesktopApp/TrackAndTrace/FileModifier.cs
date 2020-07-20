@@ -71,7 +71,7 @@ namespace TrackAndTrace
             catch (Exception exception)
             {
                 Utils.PrintErrorMessage(exception, new string[] 
-                    {"Error writing to file " + ((FileStream)writer.BaseStream).Name});
+                    {"Error writing to file " + ((FileStream)writer.BaseStream).Name}, true);
                 written = false;
             }
 

@@ -23,7 +23,8 @@ namespace TrackAndTrace
             foreach(PortableDevice device in deviceList)
             {
                 _currentDevice = device;
-                Console.WriteLine(_currentDevice.DeviceId);
+                if (!_silent)
+                    Console.WriteLine(_currentDevice.DeviceId);
                 _currentDevice.Connect();
                 PortableDeviceFolder root = _currentDevice.GetContents();
                 RetrieveFromDevice(root, "TrackAndTrace");

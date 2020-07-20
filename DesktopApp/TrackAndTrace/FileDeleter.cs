@@ -51,7 +51,7 @@ namespace TrackAndTrace
 
                 if (fileDate == DateTime.MinValue)
                 {
-                    Utils.PrintErrorMessage(null, new string[] {"Error getting date from file " + file});
+                    Utils.PrintErrorMessage(null, new string[] {"Error getting date from file " + file}, true);
                 }
                 else if (fileDate.CompareTo(twentyTwoDaysAgo) < 0)
                     DeleteFile(file);
@@ -88,7 +88,7 @@ namespace TrackAndTrace
             }
             catch (Exception exception)
             {
-                Utils.PrintErrorMessage(exception, new string[] {"Error deleting file " + filePath});
+                Utils.PrintErrorMessage(exception, new string[] {"Error deleting file " + filePath}, true);
                 deleted = false;
             }
             

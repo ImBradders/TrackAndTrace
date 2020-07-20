@@ -71,11 +71,17 @@ namespace TrackAndTrace
         {
             List<TextMessage> srcMessages = ReadCSVFile(_sourceDirectory + "\\" + filePath);
             List<TextMessage> destMessages = ReadCSVFile(_destinationDirectory + "\\" + filePath);
+            List<string> destMessagesBodies = new List<string>();
 
+            foreach (TextMessage message in destMessages)
+            {
+                destMessagesBodies.Add(message.Body);
+            }
+            
             //move all the messages to the destination if they aren't already there
             foreach (TextMessage message in srcMessages)
             {
-                if (!destMessages.Contains(message))
+                if (!destMessagesBodies.Contains(message.Body))
                     destMessages.Add(message);
             }
             
@@ -98,10 +104,11 @@ namespace TrackAndTrace
         private int WriteToFile(string filePath, List<TextMessage> messages)
         {
             int numMessagesWritten = 0;
-            StreamWriter writer = new StreamWriter(filePath, false);
+            StreamWriter writer = null;
 
             try
             {
+                writer = new StreamWriter(filePath, false);
                 //write the header
                 writer.WriteLine(_newFileLine);
 
@@ -118,15 +125,16 @@ namespace TrackAndTrace
                     //this is an error where two processes are attempting to access the same file.
                     //this is an error that I want to ignore because we will attempt the read again in 4-6 mins
                     //and the file will be updated the next time around.
+                    Utils.PrintErrorMessage(null, new string[] {"Please close the file " + filePath}, false);
                 }
                 else
                 {
-                    Utils.PrintErrorMessage(exception, new string[]{"Error writing to file " + filePath});
+                    Utils.PrintErrorMessage(exception, new string[]{"Error writing to file " + filePath}, true);
                 }
             }
             finally
             {
-                writer.Close();
+                writer?.Close();
             }
 
             return numMessagesWritten;
@@ -135,7 +143,7 @@ namespace TrackAndTrace
         private List<TextMessage> ReadCSVFile(string filePath)
         {
             List<TextMessage> messages = new List<TextMessage>();
-            StreamReader reader = new StreamReader(filePath);
+            StreamReader reader = null;
             string line = "";
             string[] splitLine;
             string[] splitFilePath = filePath.Split('\\');
@@ -148,6 +156,7 @@ namespace TrackAndTrace
 
             try
             {
+                reader = new StreamReader(filePath);
                 reader.ReadLine(); //read off the file header.
                 while ((line = reader.ReadLine()) != null)
                 {
@@ -178,15 +187,16 @@ namespace TrackAndTrace
                     //this is an error where two processes are attempting to access the same file.
                     //this is an error that I want to ignore because we will attempt the read again in 4-6 mins
                     //and the file will be updated the next time around.
+                    Utils.PrintErrorMessage(null, new string[] {"Please close the file " + filePath}, false);
                 }
                 else
                 {
-                    Utils.PrintErrorMessage(exception, new string[] {"Error reading from file " + filePath});
+                    Utils.PrintErrorMessage(exception, new string[] {"Error reading from file " + filePath}, false);
                 }
             }
             finally
             {
-                reader.Close();
+                reader?.Close();
             }
 
             return messages;
@@ -197,11 +207,12 @@ namespace TrackAndTrace
             string srcPath = _sourceDirectory + "\\" + date;
             string destPath = _destinationDirectory + "\\" + date;
             if (numMessagesWritten == numMessagesToWrite)
-                Console.Write("All messages written from ");
+                Console.Write("All new messages written from ");
             else
                 Console.Write(numMessagesWritten + " messages written from ");
 
-            Console.WriteLine(srcPath + " to " + destPath + ".");
+            Console.Write(srcPath + " to " + destPath + ". ");
+            Console.WriteLine(numMessagesWritten + " total messages written.");
         }
     }
 }

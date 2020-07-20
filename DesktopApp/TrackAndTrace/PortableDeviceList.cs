@@ -34,7 +34,7 @@ namespace TrackAndTrace
                     "Unable to access mobile device.",
                     "Please unplug and replug the device and ensure that the device is set to \"USB for file transfer\".",
                     "Once this is done, restart this program."
-                });
+                }, true);
                 return false;
             }
 
