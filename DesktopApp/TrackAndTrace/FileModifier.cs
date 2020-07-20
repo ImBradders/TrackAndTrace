@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 
 namespace TrackAndTrace
 {
@@ -24,6 +26,7 @@ namespace TrackAndTrace
             StreamWriter fileWriter = null;
             string newFileLine = "Name,Number,Hour,Minute";
             string[] textMessages = Directory.GetFiles(_textMessagesPath);
+            textMessages = SortTextMessages(textMessages);
 
             foreach (string textMessage in textMessages)
             {
@@ -59,6 +62,46 @@ namespace TrackAndTrace
             fileWriter?.Close();
             if(!_silent)
                 Console.WriteLine();
+        }
+
+        private string[] SortTextMessages(string[] textMessages)
+        {
+            int[] fileNames = new int[textMessages.Length];
+            string[] splitPath = textMessages[0].Split('\\');
+            string pathStart = "";
+            const string fileExt = ".txt";
+
+            for (int i = 0; i < splitPath.Length - 1; i++)
+            {
+                pathStart += splitPath[i] + "\\";
+            }
+
+            string fileName;
+            for (int i = 0; i < fileNames.Length; i++)
+            {
+                splitPath = textMessages[i].Split('\\');
+                fileName = splitPath[splitPath.Length - 1];
+                fileName = fileName.Substring(0, fileName.Length - fileExt.Length);
+                if (!int.TryParse(fileName, out fileNames[i]))
+                {
+                    Utils.PrintErrorMessage(null, new string[] 
+                                            {"Unable to parse file for sorting " + textMessages[i]}, true);
+                    fileNames[i] = int.MinValue;
+                }
+            }
+
+            Array.Sort(fileNames);
+            if (fileNames[0] > fileNames[1])
+                Array.Reverse(fileNames);
+
+            List<string> orderedFileNames = new List<string>();
+            for (int i = 0; i < fileNames.Length; i++)
+            {
+                if (fileNames[i] != int.MinValue)
+                    orderedFileNames.Add(pathStart + fileNames[i] + fileExt);
+            }
+
+            return orderedFileNames.ToArray();
         }
 
         public bool WriteToFile(ref StreamWriter writer, string line)
