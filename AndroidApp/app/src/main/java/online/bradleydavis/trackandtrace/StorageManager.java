@@ -19,6 +19,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * Class to handle how the application uses the device storage which is necessary for this application.
+ *
+ * @author Bradley Davis
+ */
 public class StorageManager {
     private Context context;
     private final String baseFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).toString();
@@ -26,6 +31,11 @@ public class StorageManager {
     SimpleDateFormat timeConverter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
     SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 
+    /**
+     * Constructor to pass in the context of the application.
+     *
+     * @param context Application context.
+     */
     public StorageManager(Context context) {
         this.context = context;
         if (!CreateDir(baseFilePath + filePathExt)) {
@@ -33,11 +43,20 @@ public class StorageManager {
         }
     }
 
+    /**
+     * This is the method called to ensure that all files are updated.
+     * This runs another method on a separate thread to ensure that this can be done outside of the UI thread.
+     */
     public void UpdateFiles() {
         Thread thread = new Thread(PerformUpdate());
         thread.start();
     }
 
+    /**
+     * Method creating the runnable which updates the various files on the device.
+     *
+     * @return A runnable which will write new files and delete old ones.
+     */
     private Runnable PerformUpdate() {
         return new Runnable() {
             @Override
@@ -50,12 +69,21 @@ public class StorageManager {
         };
     }
 
+    /**
+     * Method to delete the files which are no longer necessary.
+     * To comply with GDPR, the files on this device must be deleted after 21 days.
+     *
+     * @param filesToKeep The files which have just been written.
+     */
     private void DeleteOld(List<String> filesToKeep) {
+        //get the files currently on disk.
         File directory = new File(baseFilePath + filePathExt);
         String[] oldFiles = directory.list();
+        //if there are no files on disk or if the same number of files are on disk as have just been written, we have nothing to delete.
         if (oldFiles == null || oldFiles.length == filesToKeep.size())
             return;
 
+        // for each file, if it is not in the list of files to keep, delete it.
         for (String file : oldFiles) {
             if (!filesToKeep.contains(file)) {
                 //if the file found is not listed to be kept, delete it.
@@ -67,12 +95,19 @@ public class StorageManager {
         }
     }
 
+    /**
+     * Method to write files to disk.
+     * This attempts to write all text messages which are younger than 21 days to disk.
+     *
+     * @return an array of the files that either have been written to disk or that the write was attempted for.
+     */
     private List<String> WriteFiles() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -21);
         Date twentyOneDaysAgo = calendar.getTime();
 
         //one file per text message will be written. These can then be more easily managed off device.
+        //get messages from database.
         ContentResolver contentResolver = context.getContentResolver();
         Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
         int indexID = smsInboxCursor.getColumnIndex("_id");
@@ -80,8 +115,10 @@ public class StorageManager {
         int indexAddress = smsInboxCursor.getColumnIndex("address");
         int indexTimeStamp = smsInboxCursor.getColumnIndex("date");
 
+        //create the list of files to return.
         List<String> filesWritten = new ArrayList<String>();
 
+        //move to start or return if there are no text messages.
         if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return null;
 
         do {
@@ -96,6 +133,7 @@ public class StorageManager {
             messageBody = messageBody.replaceAll(",", "");
             messageBody = messageBody.replaceAll("\n", " ");
 
+            //create the file and data to write to it.
             File newFile = new File(baseFilePath + filePathExt +
                     File.separator + id + ".txt");
             String formattedEntry = messageBody + "," + phoneNumber + "," +
@@ -126,6 +164,16 @@ public class StorageManager {
         return filesWritten;
     }
 
+    /**
+     * Method to create a file and write specific data to it.
+     *
+     * @param file the file to be written to/created.
+     * @param data the data to write to the file.
+     * @return
+     * 1 - File already exists
+     * 0 - File created and written to without issue
+     * -1 - There was an issue in writing the file
+     */
     private int WriteSpecific(File file, String data) {
         FileWriter fileWriter = null;
         try {
@@ -164,6 +212,12 @@ public class StorageManager {
         return 0;
     }
 
+    /**
+     * Create a given directory.
+     *
+     * @param filePath the path of the directory to create.
+     * @return whether or not the directory could be created.
+     */
     private boolean CreateDir(String filePath) {
         File folder = null;
         try {

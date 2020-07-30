@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+/**
+ * ArrayAdapter class which handles displaying the text messages to the user.
+ *
+ * @author Bradley Davis
+ */
 class MessagesArrayAdapter extends ArrayAdapter {
 
     public MessagesArrayAdapter(@NonNull Context context, ArrayList<SingleMessage> list) {

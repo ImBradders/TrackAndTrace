@@ -1,5 +1,10 @@
 package online.bradleydavis.trackandtrace;
 
+/**
+ * Simple class to store a text message.
+ *
+ * @author Bradley Davis
+ */
 public class SingleMessage {
     private String phoneNumber;
     private String date;

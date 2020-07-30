@@ -30,6 +30,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * The activity class for the application.
+ *
+ * @author Bradley Davis
+ */
 public class MainActivity extends AppCompatActivity {
 
     ListView messages;
@@ -47,20 +52,28 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        if (!isDefaultApp()){
+            Intent setSmsAppIntent = new Intent(Telephony.Sms.Intents.ACTION_CHANGE_DEFAULT);
+            setSmsAppIntent.putExtra(Telephony.Sms.Intents.EXTRA_PACKAGE_NAME, getPackageName());
+            startActivityForResult(setSmsAppIntent, DEFAULT_APPLICATION_REQUEST);
+        }
+
+        //get the messages listview and add adapter.
         messages = (ListView) findViewById(R.id.messages);
         arrayAdapter = new MessagesArrayAdapter(this, new ArrayList<SingleMessage>());
         messages.setAdapter(arrayAdapter);
 
+        //ensure that we have asked for the relevant permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
             getPermissionToReadSMS();
         }
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             getPermissionToAccessStorage();
         }
 
+        //if we have all of the correct permissions, we can run
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 == PackageManager.PERMISSION_GRANTED &&
                 ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -83,16 +96,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method which refreshes the inbox. This is called when any text messages are received.
+     */
     public void refreshSmsInbox() {
+        //ensure that we also update the files on the device with the new messages.
         storageManager.UpdateFiles();
 
         Calendar calendar = Calendar.getInstance(); 
         calendar.add(Calendar.DATE, -21);
         Date twentyOneDaysAgo = calendar.getTime();
-
         SimpleDateFormat timeConverter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
 
+        //retrieve messages from database.
         ContentResolver contentResolver = getContentResolver();
         Cursor smsInboxCursor = contentResolver.query(Uri.parse("content://sms/inbox"), null, null, null, null);
         int indexID = smsInboxCursor.getColumnIndex("_id");
@@ -100,8 +117,10 @@ public class MainActivity extends AppCompatActivity {
         int indexAddress = smsInboxCursor.getColumnIndex("address");
         int indexTimeStamp = smsInboxCursor.getColumnIndex("date");
 
+        //start at the first message if there are any messages.
         if (indexBody < 0 || !smsInboxCursor.moveToFirst()) return;
 
+        //fill the array adapter with the messages.
         arrayAdapter.clear();
         do {
             //get message details
@@ -130,6 +149,12 @@ public class MainActivity extends AppCompatActivity {
         smsInboxCursor.close();
     }
 
+    /**
+     * Creates the local broadcast receiver which listens for the local broadcasts.
+     * When a message is received, a local broadcast is sent out which this picks up.
+     *
+     * @return the broadcast receiver.
+     */
     private BroadcastReceiver createReceiver() {
         return new BroadcastReceiver() {
             @Override
@@ -139,6 +164,9 @@ public class MainActivity extends AppCompatActivity {
         };
     }
 
+    /**
+     * Method to get permissions to Read the SMS messages
+     */
     public void getPermissionToReadSMS() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -150,6 +178,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method to get permission to access local storage.
+     */
     public void getPermissionToAccessStorage() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -162,6 +193,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method to receive the outcome of the permissions requests and process them.
+     *
+     * @param requestCode the custom request code provided.
+     * @param permissions the permissions requested
+     * @param grantResults the results granted.
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String permissions[],
@@ -190,6 +228,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Method to check whether or not this application is the default messaging application.
+     *
+     * @return whether or not this application is the default messaging application.
+     */
     private boolean isDefaultApp() {
         final IntentFilter filter = new IntentFilter(Intent.ACTION_MAIN);
         filter.addCategory(Intent.CATEGORY_HOME);
@@ -212,9 +255,13 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    /**
+     * Method which is called when the activity is destroyed.
+     */
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        //tidy up the local broadcast manager.
         LocalBroadcastManager localBroadcastManager = LocalBroadcastManager.getInstance(this);
         localBroadcastManager.unregisterReceiver(localBroadcastReceiver);
     }
