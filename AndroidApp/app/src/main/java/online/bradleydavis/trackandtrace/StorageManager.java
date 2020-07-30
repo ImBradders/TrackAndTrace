@@ -69,8 +69,8 @@ public class StorageManager {
 
     private List<String> WriteFiles() {
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, -22);
-        Date twentyTwoDaysAgo = calendar.getTime();
+        calendar.add(Calendar.DATE, -21);
+        Date twentyOneDaysAgo = calendar.getTime();
 
         //one file per text message will be written. These can then be more easily managed off device.
         ContentResolver contentResolver = context.getContentResolver();
@@ -101,8 +101,8 @@ public class StorageManager {
             String formattedEntry = messageBody + "," + phoneNumber + "," +
                     time + "," + date;
 
-            //if the message is younger than 22 days, save it to the folder.
-            if (dateStamp.after(twentyTwoDaysAgo)) {
+            //if the message is younger than 21 days, save it to the folder.
+            if (dateStamp.after(twentyOneDaysAgo)) {
                 int returnValue = WriteSpecific(newFile, formattedEntry);
                 switch (returnValue) {
                     case -1:

@@ -35,7 +35,7 @@ namespace TrackAndTrace
             string[] pathSplit;
             string fileName;
             DateTime fileDate;
-            DateTime twentyTwoDaysAgo = DateTime.Now.AddDays(-22);
+            DateTime twentyOneDaysAgo = DateTime.Now.AddDays(-21);
 
             foreach (string file in files)
             {
@@ -53,7 +53,7 @@ namespace TrackAndTrace
                 {
                     Utils.PrintErrorMessage(null, new string[] {"Error getting date from file " + file}, true);
                 }
-                else if (fileDate.CompareTo(twentyTwoDaysAgo) < 0)
+                else if (fileDate.CompareTo(twentyOneDaysAgo) < 0)
                     DeleteFile(file);
             }
         }
