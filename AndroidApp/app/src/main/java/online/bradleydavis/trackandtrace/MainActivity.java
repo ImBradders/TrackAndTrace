@@ -7,6 +7,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -16,6 +17,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Telephony;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -25,6 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayAdapter arrayAdapter;
     BroadcastReceiver localBroadcastReceiver;
     StorageManager storageManager;
+    private static final int DEFAULT_APPLICATION_REQUEST = 99;
     private static final int READ_SMS_PERMISSIONS_REQUEST = 1;
     private static final int ACCESS_EXTERNAL_STORAGE_REQUEST = 2;
 
@@ -83,8 +87,8 @@ public class MainActivity extends AppCompatActivity {
         storageManager.UpdateFiles();
 
         Calendar calendar = Calendar.getInstance(); 
-        calendar.add(Calendar.DATE, -22);
-        Date twentyTwoDaysAgo = calendar.getTime();
+        calendar.add(Calendar.DATE, -21);
+        Date twentyOneDaysAgo = calendar.getTime();
 
         SimpleDateFormat timeConverter = new SimpleDateFormat("HH:mm", Locale.ENGLISH);
         SimpleDateFormat dateConverter = new SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH);
@@ -109,17 +113,14 @@ public class MainActivity extends AppCompatActivity {
             String date = dateConverter.format(dateStamp);
             String messageBody = smsInboxCursor.getString(indexBody);
 
-            //if the message is over 22 days old, don't show it in the list
-            if (dateStamp.before(twentyTwoDaysAgo)) {
-                //TODO find out how to set app as default messaging app to circumvent this.
-                /*Deleting the messages does not work due to Android being wonderfully unique
+            //if the message is over 21 days old, don't show it in the list and attempt to delete it
+            if (dateStamp.before(twentyOneDaysAgo)) {
                 try {
                     contentResolver.delete(Uri.parse("content://sms/" + id), null, null);
                 }
                 catch (Exception e) {
                     Log.d("TrackAndTrace", e.getMessage());
                 }
-                */
             }
             else {
                 arrayAdapter.add(new SingleMessage(phoneNumber, date, time, messageBody));
@@ -170,18 +171,15 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length == 1 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Read SMS permission granted", Toast.LENGTH_SHORT).show();
-                refreshSmsInbox();
             }
             else {
                 Toast.makeText(this, "Read SMS permission denied", Toast.LENGTH_SHORT).show();
             }
-
         }
         else if (requestCode == ACCESS_EXTERNAL_STORAGE_REQUEST) {
             if (grantResults.length == 1 &&
                     grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Access external storage granted", Toast.LENGTH_SHORT).show();
-                refreshSmsInbox();
             }
             else {
                 Toast.makeText(this, "Access external storage denied", Toast.LENGTH_SHORT).show();
@@ -190,6 +188,28 @@ public class MainActivity extends AppCompatActivity {
         else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+    }
+
+    private boolean isDefaultApp() {
+        final IntentFilter filter = new IntentFilter(Intent.ACTION_MAIN);
+        filter.addCategory(Intent.CATEGORY_HOME);
+
+        List<IntentFilter> filters = new ArrayList<IntentFilter>();
+        filters.add(filter);
+
+        final String myPackageName = getPackageName();
+        List<ComponentName> activities = new ArrayList<ComponentName>();
+        final PackageManager packageManager = (PackageManager) getPackageManager();
+
+        // You can use name of your package here as third argument
+        packageManager.getPreferredActivities(filters, activities, null);
+
+        for (ComponentName activity : activities) {
+            if (myPackageName.equals(activity.getPackageName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
