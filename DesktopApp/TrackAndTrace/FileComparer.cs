@@ -6,6 +6,10 @@ using System.Linq;
 
 namespace TrackAndTrace
 {
+    /// <summary>
+    /// Class which compares the intermediary files to the files for the user to view.
+    /// This ensures that no data is lost during text message retrieval if one message cannot be pulled from the phone.
+    /// </summary>
     public class FileComparer
     {
         private bool _silent;
@@ -20,6 +24,9 @@ namespace TrackAndTrace
             _destinationDirectory = destinationDirectory;
         }
 
+        /// <summary>
+        /// Method to run the File Comparer
+        /// </summary>
         public void Run()
         {
             string[] sourceFilePaths = Directory.GetFiles(_sourceDirectory);
@@ -67,10 +74,15 @@ namespace TrackAndTrace
                 Console.WriteLine();
         }
 
-        private List<TextMessage> CompareFiles(string filePath)
+        /// <summary>
+        /// Method to compare the contents of two CSV files - one from the destination directory and one from the source directory.
+        /// </summary>
+        /// <param name="fileName">The name of the files</param>
+        /// <returns>A list of text messages where are in the source file but not the destination file.</returns>
+        private List<TextMessage> CompareFiles(string fileName)
         {
-            List<TextMessage> srcMessages = ReadCSVFile(_sourceDirectory + "\\" + filePath);
-            List<TextMessage> destMessages = ReadCSVFile(_destinationDirectory + "\\" + filePath);
+            List<TextMessage> srcMessages = ReadCSVFile(_sourceDirectory + "\\" + fileName);
+            List<TextMessage> destMessages = ReadCSVFile(_destinationDirectory + "\\" + fileName);
             List<string> destMessagesBodies = new List<string>();
 
             foreach (TextMessage message in destMessages)
@@ -90,6 +102,11 @@ namespace TrackAndTrace
             return destMessages;
         }
 
+        /// <summary>
+        /// Method to create a given file.
+        /// </summary>
+        /// <param name="file">The path of the file to create.</param>
+        /// <returns>Whether or not the file was created.</returns>
         private bool CreateFile(string file)
         {
             if (!File.Exists(file))
@@ -101,6 +118,12 @@ namespace TrackAndTrace
             return File.Exists(file);
         }
 
+        /// <summary>
+        /// Method to write a list of text messages to a file.
+        /// </summary>
+        /// <param name="filePath">The file path of the file to write to.</param>
+        /// <param name="messages">The list of text messages to write to.</param>
+        /// <returns>The number of messages that were written to the file.</returns>
         private int WriteToFile(string filePath, List<TextMessage> messages)
         {
             int numMessagesWritten = 0;
@@ -140,6 +163,11 @@ namespace TrackAndTrace
             return numMessagesWritten;
         }
         
+        /// <summary>
+        /// Method to read a CSV file.
+        /// </summary>
+        /// <param name="filePath">The path of the file to read.</param>
+        /// <returns>A list of text messages from the file.</returns>
         private List<TextMessage> ReadCSVFile(string filePath)
         {
             List<TextMessage> messages = new List<TextMessage>();
@@ -176,7 +204,6 @@ namespace TrackAndTrace
                         CultureInfo.InvariantCulture, DateTimeStyles.None, out messageTime))
                         continue;
                     
-                    
                     messages.Add(new TextMessage("none", body, from, messageTime));
                 }
             }
@@ -201,7 +228,13 @@ namespace TrackAndTrace
 
             return messages;
         }
-
+        
+        /// <summary>
+        /// Method to print the details of what is happening in the file comparison.
+        /// </summary>
+        /// <param name="numMessagesWritten">The number of messages written to the Viewing files.</param>
+        /// <param name="numMessagesToWrite">The number of messages that we expected to write.</param>
+        /// <param name="date">The date (file name) of both the Output and Viewing files.</param>
         private void PrintDetails(int numMessagesWritten, int numMessagesToWrite, string date)
         {
             string srcPath = _sourceDirectory + "\\" + date;

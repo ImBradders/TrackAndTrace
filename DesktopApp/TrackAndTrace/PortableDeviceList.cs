@@ -4,6 +4,12 @@ using PortableDeviceApiLib;
 
 namespace TrackAndTrace
 {
+    /// <summary>
+    /// A list of portable devices which are currently connected to the system.
+    /// It should be noted that some of the calls used here are part of a c++ library
+    /// and using this in c# gets a little funky in places.
+    /// Credit for WindowsPortableDevices code goes to https://github.com/geersch/WPD
+    /// </summary>
     public class PortableDeviceList : List<PortableDevice>
     {
         private PortableDeviceManager _deviceManager;
@@ -13,6 +19,10 @@ namespace TrackAndTrace
             _deviceManager = new PortableDeviceManager();
         }
 
+        /// <summary>
+        /// Method to refresh this class with the portable devices that are connected to the system.
+        /// </summary>
+        /// <returns>Whether the refresh was successful or not.</returns>
         public bool Refresh()
         {
             _deviceManager.RefreshDeviceList();
@@ -38,6 +48,7 @@ namespace TrackAndTrace
                 return false;
             }
 
+            //add each device found to the list.
             foreach(string deviceId in deviceIds)
             {
                 Add(new PortableDevice(deviceId));

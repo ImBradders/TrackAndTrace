@@ -5,12 +5,17 @@ namespace TrackAndTrace
 {
     internal class Program
     {
+        /// <summary>
+        /// Main method of the program providing an entry point for the system.
+        /// </summary>
+        /// <param name="args">Program arguments</param>
         public static void Main(string[] args)
         {
             string textMessagesLocalStorage = @"C:\TrackAndTrace\TextMessages";
             string outputFiles = @"C:\TrackAndTrace\OutputFiles";
             string viewingFiles = @"C:\TrackAndTrace\ViewingFiles";
 
+            //ensure that the program can start.
             if (!Startup.PerformStartup(textMessagesLocalStorage, outputFiles, viewingFiles))
             {
                 Console.WriteLine("Program was unable to create the necessary folders to start.");
@@ -19,6 +24,7 @@ namespace TrackAndTrace
                 return;
             }
 
+            //request input from the user as to whether they would like the application to run in silent mode or not
             bool silent = false;
             bool gotSilent = false;
             while (!gotSilent)
@@ -42,6 +48,7 @@ namespace TrackAndTrace
             }
             Console.WriteLine();
             
+            //give the user some important information that they will probably ignore.
             bool programmingRunning = true;
             Console.WriteLine("Please press the escape key if the program needs to be stopped.");
             Console.WriteLine("This ensures that the program is not stopped during file transmission.");
@@ -50,12 +57,14 @@ namespace TrackAndTrace
             Console.ReadKey();
             Console.WriteLine();
 
+            //create classes to run the program.
             FileRetriever fileRetriever = new FileRetriever(silent, textMessagesLocalStorage);
             FileModifier fileModifier = new FileModifier(silent, textMessagesLocalStorage, outputFiles);
             FileComparer fileComparer = new FileComparer(silent, outputFiles, viewingFiles);
             FileDeleter fileDeleter = new FileDeleter(silent, new string[]{textMessagesLocalStorage, outputFiles, viewingFiles});
             Random random = new Random();
             
+            //main program loop
             while (programmingRunning)
             {
                 //kill the program if we cannot retrieve the files.

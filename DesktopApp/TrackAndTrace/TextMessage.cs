@@ -2,6 +2,9 @@
 
 namespace TrackAndTrace
 {
+    /// <summary>
+    /// Simple class for storing a text message.
+    /// </summary>
     public class TextMessage
     {
         public string Id { get; set; }
@@ -17,6 +20,10 @@ namespace TrackAndTrace
             Time = time;
         }
 
+        /// <summary>
+        /// Creates the line for the file as it should be for the CSV output files.
+        /// </summary>
+        /// <returns>The file contents formatted for CSV.</returns>
         public string GetOutputFileLine()
         { 
             return Body + "," + From + "," + Time.ToString("HH") + "," +Time.ToString("mm");

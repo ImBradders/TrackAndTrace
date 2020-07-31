@@ -6,12 +6,20 @@ using PortableDeviceTypesLib;
 
 namespace TrackAndTrace
 {
+    /// <summary>
+    /// Class representing a specific portable device.
+    /// Credit for WindowsPortableDevices code goes to https://github.com/geersch/WPD
+    /// </summary>
     public class PortableDevice
     {
         private bool _isConnected;
         private PortableDeviceClass _device;
         public string DeviceId { get; set; }
         
+        /// <summary>
+        /// Constructor for a PortableDevice
+        /// </summary>
+        /// <param name="deviceId">The ID of the device given by the system.</param>
         public PortableDevice(string deviceId)
         {
             DeviceId = deviceId;
@@ -19,6 +27,9 @@ namespace TrackAndTrace
             _isConnected = false;
         }
 
+        /// <summary>
+        /// Method to connect to this device.
+        /// </summary>
         public void Connect()
         {
             if (_isConnected) 
@@ -29,6 +40,9 @@ namespace TrackAndTrace
             _isConnected = true;
         }
         
+        /// <summary>
+        /// Method to disconnect from this device.
+        /// </summary>
         public void Disconnect()
         {
             if (!_isConnected) 
@@ -38,6 +52,10 @@ namespace TrackAndTrace
             _isConnected = false;
         }
         
+        /// <summary>
+        /// Method to get the drive letter of this device.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if this is attempted before Connect is called.</exception>
         public string DriveLetter
         {
             get
@@ -68,6 +86,11 @@ namespace TrackAndTrace
             }
         }
         
+        /// <summary>
+        /// Get the entire content of the device.
+        /// </summary>
+        /// <returns>A PortableDeviceFolder containing the entire contents of the device.
+        /// This is effectively the root dir of the device.</returns>
         public PortableDeviceFolder GetContents()
         {
             var root = new PortableDeviceFolder("DEVICE", "DEVICE");
@@ -77,6 +100,12 @@ namespace TrackAndTrace
             return root;
         }
         
+        /// <summary>
+        /// Turns the content of the device into PortableDeviceFolders and PortableDeviceFiles by running through the folder structure.
+        /// Credit to https://github.com/geersch/WPD for this code.
+        /// </summary>
+        /// <param name="content">The content of the device.</param>
+        /// <param name="parent">The root folder of the device.</param>
         private static void EnumerateContents(ref IPortableDeviceContent content, PortableDeviceFolder parent)
         {
             // Get the properties of the object
@@ -104,6 +133,14 @@ namespace TrackAndTrace
             } while (fetched > 0);
         }
         
+        /// <summary>
+        /// Turns an object on the device into a PortableDeviceFolder or PortableDeviceFile.
+        /// I have no idea how this works or where the GUID numbers come from.
+        /// Credit to https://github.com/geersch/WPD for this code.
+        /// </summary>
+        /// <param name="properties">The properties of the portable device.</param>
+        /// <param name="objectId">The id of the object to be wrapped.</param>
+        /// <returns></returns>
         private static PortableDeviceObject WrapObject(IPortableDeviceProperties properties, string objectId)
         {
             PortableDeviceApiLib.IPortableDeviceKeyCollection keys;
@@ -140,6 +177,13 @@ namespace TrackAndTrace
             return new PortableDeviceFile(objectId, name);
         }
 
+        /// <summary>
+        /// Download a specific file from this device.
+        /// Credit to https://github.com/geersch/WPD for majority of this code.
+        /// </summary>
+        /// <param name="file">The file to be downloaded.</param>
+        /// <param name="saveToPath">The local path to save this to.</param>
+        /// <returns>Whether or no the transfer was successful.</returns>
         public bool DownloadFile(PortableDeviceFile file, string saveToPath)
         {
             try
