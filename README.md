@@ -1,3 +1,2 @@
-# Track and Trace for GBDavis and Sons
-
-Necessary components for a track and trace application for GBDavis and Sons funeral directors.
+# Track and Trace
+Necessary components for a track and trace application using Android phone and Windows computer.
